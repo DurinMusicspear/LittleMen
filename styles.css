@@ -1,0 +1,59 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+
+img {
+	border: none;
+}
+
+#board {
+	margin: auto;
+}
+
+#hand {
+	background: #ccc;
+	width: 100%;
+	height: 90px;
+}
+#hand .nextTile {
+	margin: auto;
+	width: 90px;
+	float: left;
+}
+
+.TileContainer {
+	width: 90px;
+	height: 90px;
+	float: left;
+	background: #f6f6f6;
+	/*-webkit-transform: rotate(90deg);*/
+}
+
+.remainingTiles {
+	float: left;
+}
+
+.TileType {
+	width: 30px;
+	height: 30px;
+	float: left;
+	background: transparent;
+	opacity: 0.6;
+}
+
+.City {
+	background: brown;
+}
+
+.Road {
+	background: white;
+}
+
+.Grass {
+	background: green;
+}
+
+.Cloister {
+	background: black;
+}
