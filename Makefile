@@ -15,8 +15,10 @@ install :
 	#Move new files to deployment directory
 	sudo mkdir -p $(app_dir)
 	sudo mkdir -p $(app_dir)/images
+	sudo mkdir -p $(app_dir)/js
 	sudo cp ./*.* $(app_dir)/
 	sudo cp ./images/*.* $(app_dir)/images/
+	sudo cp ./js/*.* $(app_dir)/js/
 	# sudo cp ./node_arena_monit.conf /etc/monit/conf.d/
 	# sudo cp ./node_arena.conf /etc/init/
 	# Clean up temp directory
