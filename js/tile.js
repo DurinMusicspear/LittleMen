@@ -1,89 +1,67 @@
+var TileData = function (imageName) {
+	this.imageName = imageName;
+	this.objects = new Array();
+};
+
+TileData.prototype.addObject = function(tileObject) {
+	this.objects.push(tileObject);
+};
+
 /* Types:
- 0 - Grass
  1 - City
  2 - Road 
  3 - City with shield
  4 - Cloister
  5 - Nothing / Crossroad */
-var TileData = function () {
-	this.tileCount = 1;
-	this.imageName = '';
-	this.sides = new Array();
-	this.sides[0] = 0; // Top
-	this.sides[1] = 0; // Right
-	this.sides[2] = 0; // Bottom
-	this.sides[3] = 0; // Left
-	this.sides[4] = 0; // Center
-	this.follower = null;
+var TileObject = function(type, coveredSubtiles) {
+	this.type = type;
+	this.coveredSubtiles = coveredSubtiles;
 };
 
+
 var Tile = function (tileData) {
+	var self = this;
 	this.tileData = tileData;
-	//this.element = $('<img src="' + tileData.imageName + '.png" />');
-	this.element = $('<div style="overflow: hidden; background: url(images/' + tileData.imageName + '.png)"></div>');
+	this.element = $('<div style="overflow: hidden; background: url(images/' + 
+		tileData.imageName + '.png)"></div>');
 	this.rotation = 0;
+	this.sides = new Array(4);
 	this.subTiles = new Array(9);
+	this.follower = null;
+
+	$.each(tileData.objects, function(index, object) {
+		$.each(object.coveredSubtiles, function(index, subtileIndex) {
+			 self.subTiles[subtileIndex] = object.type;
+		});
+	});
 
 	for(var i = 0; i < 9; i++) {
 		var typeClass = 'TileType ';
-		this.subTiles[i] = -1;
-		switch(i) {
-			case 1:
-				this.subTiles[i] = this.tileData.sides[3];
-				break;
-			case 3:
-				this.subTiles[i] = this.tileData.sides[2];
-				break;
-			case 4:
-				this.subTiles[i] = this.tileData.sides[4];
-				break;
-			case 5:
-				this.subTiles[i] = this.tileData.sides[0];
-				break;
-			case 7:
-				this.subTiles[i] = this.tileData.sides[1];
-				break;
-		}
-	}
-
-	for(var i = 0; i < 9; i++) {
-		var typeClass = 'TileType ';
-		switch(i) {
-			case 0:
-				if(	(this.subTiles[1] == 2 || this.subTiles[1] == 0) && 
-						(this.subTiles[3] == 2 || this.subTiles[3] == 0))
-				this.subTiles[i] = 0;
-				break;
-			case 2:
-				if(	(this.subTiles[1] == 2 || this.subTiles[1] == 0) && 
-						(this.subTiles[5] == 2 || this.subTiles[5] == 0))
-				this.subTiles[i] = 0;
-				break;
-			case 6:
-				if(	(this.subTiles[3] == 2 || this.subTiles[3] == 0) && 
-						(this.subTiles[7] == 2 || this.subTiles[7] == 0))
-				this.subTiles[i] = 0;
-				break;
-			case 8:
-				if(	(this.subTiles[5] == 2 || this.subTiles[5] == 0) && 
-						(this.subTiles[7] == 2 || this.subTiles[7] == 0))
-				this.subTiles[i] = 0;
-				break;
-		}
-
 		typeClass += ' ' + getTypeClass(this.subTiles[i]);
 		var subTile = $('<div class="' + typeClass + '"></div>');
 		this.element.append(subTile);
 	}
+
+	this.sides[0] = this.subTiles[5];
+	this.sides[1] = this.subTiles[7];
+	this.sides[2] = this.subTiles[3];
+	this.sides[3] = this.subTiles[1];
+
+	for(var i = 0; i < 4; i++) {
+		if(this.sides[i] == 3)
+			this.sides[i] = 1;
+	}
 };
+
 
 var getTypeClass = function (tileType) {
 	switch(tileType) {
 		case 0:
 			return 'Grass';
 		case 1:
-		case 3:
 			return 'City';
+		case 3:
+			return 'CityShield';
 		case 2:
 			return 'Road';
 			break;
@@ -127,7 +105,8 @@ Tile.prototype.haveMatchingSides = function (otherTile, relativePosition, rotati
 	if(otherSideToCompare > 3)
 		otherSideToCompare = otherSideToCompare - 4;
 
-	return this.tileData.sides[sideToCompare] == otherTile.tileData.sides[otherSideToCompare];
+	return this.sides[sideToCompare] == otherTile.sides[otherSideToCompare];
+	return true;
 };
 
 Tile.prototype.placeFollower = function() {
@@ -150,61 +129,122 @@ var createTiles = function () {
 
 	// Start tile
 	//var connectedSides = new Array();
-	tiles = tiles.concat(createTile(4, 'city1rwe', 2, 0, 2, 1, 2));
-	tiles = tiles.concat(createTile(3, 'city1rswe', 2, 2, 2, 1, 5));
-	tiles = tiles.concat(createTile(3, 'city1rsw', 0, 2, 2, 1, 2));
-	tiles = tiles.concat(createTile(3, 'city1rse', 2, 2, 0, 1, 2));
-	tiles = tiles.concat(createTile(5, 'city1', 0, 0, 0, 1, 0));
+	tileData = new TileData('city1rwe');
+	tileData.addObject(new TileObject(1, [0, 1, 2]));
+	tileData.addObject(new TileObject(2, [3, 4, 5]));
+	tiles = tiles.concat(createTileFromTileData(4, tileData));
 
-	tiles = tiles.concat(createTile(4, 'cloister', 0, 0, 0, 0, 4));
-	tiles = tiles.concat(createTile(2, 'cloisterr', 0, 2, 0, 0, 4));
+	tileData = new TileData('city1rswe');
+	tileData.addObject(new TileObject(1, [0, 1, 2]));
+	tileData.addObject(new TileObject(2, [3, 4, 5, 7]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
 
-	tiles = tiles.concat(createTile(3, 'city11we', 1, 0, 1, 0, 0));
-	tiles = tiles.concat(createTile(2, 'city11ne', 1, 0, 0, 1, 0));
+	tileData = new TileData('city1rsw');
+	tileData.addObject(new TileObject(1, [0, 1, 2]));
+	tileData.addObject(new TileObject(2, [3, 4, 7]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
 
-	tiles = tiles.concat(createTile(9, 'road2sw', 0, 2, 2, 0, 2));
+	tileData = new TileData('city1rse');
+	tileData.addObject(new TileObject(1, [0, 1, 2]));
+	tileData.addObject(new TileObject(2, [4, 5, 7]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
 
-	tiles = tiles.concat(createTile(2, 'city2nwsr', 2, 2, 1, 1, 0));
-	tiles = tiles.concat(createTile(3, 'city2nwr', 2, 2, 1, 1, 0));
+	tileData = new TileData('city1');
+	tileData.addObject(new TileObject(1, [0, 1, 2]));
+	tiles = tiles.concat(createTileFromTileData(5, tileData));
 
-	tiles = tiles.concat(createTile(2, 'city2nws', 0, 0, 1, 1, 0));
-	tiles = tiles.concat(createTile(3, 'city2nw', 0, 0, 1, 1, 0));
+	tileData = new TileData('cloister');
+	tileData.addObject(new TileObject(4, [4]));
+	tiles = tiles.concat(createTileFromTileData(4, tileData));
 
-	tiles = tiles.concat(createTile(8, 'road2ns', 0, 2, 0, 2, 2));
+	tileData = new TileData('cloisterr');
+	tileData.addObject(new TileObject(4, [4]));
+	tileData.addObject(new TileObject(2, [7]));
+	tiles = tiles.concat(createTileFromTileData(2, tileData));
 
-	tiles = tiles.concat(createTile(2, 'city2wes', 1, 0, 1, 0, 1));
-	tiles = tiles.concat(createTile(1, 'city2we', 1, 0, 1, 0, 1));
+	tileData = new TileData('city11we');
+	tileData.addObject(new TileObject(1, [0, 3, 6]));
+	tileData.addObject(new TileObject(1, [2, 5, 8]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
 
-	tiles = tiles.concat(createTile(4, 'road3', 2, 2, 2, 0, 5));
+	tileData = new TileData('city11ne');
+	tileData.addObject(new TileObject(1, [0, 1, 2]));
+	tileData.addObject(new TileObject(1, [2, 5, 8]));
+	tiles = tiles.concat(createTileFromTileData(2, tileData));
 
-	tiles = tiles.concat(createTile(2, 'city3sr', 1, 2, 1, 1, 1));
-	tiles = tiles.concat(createTile(1, 'city3r', 1, 2, 1, 1, 1));
+	tileData = new TileData('road2sw');
+	tileData.addObject(new TileObject(2, [3, 4, 7]));
+	tiles = tiles.concat(createTileFromTileData(9, tileData));
 
-	tiles = tiles.concat(createTile(1, 'city3s', 1, 0, 1, 1, 1));
-	tiles = tiles.concat(createTile(3, 'city3', 1, 0, 1, 1, 1));
+	tileData = new TileData('city2nwsr');
+	tileData.addObject(new TileObject(3, [0, 1, 2, 3, 6]));
+	tileData.addObject(new TileObject(2, [4, 5, 7]));
+	tiles = tiles.concat(createTileFromTileData(2, tileData));
 
-	tiles = tiles.concat(createTile(1, 'road4', 2, 2, 2, 2, 5));
+	tileData = new TileData('city2nwr');
+	tileData.addObject(new TileObject(1, [0, 1, 2, 3, 6]));
+	tileData.addObject(new TileObject(2, [4, 5, 7]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
 
-	tiles = tiles.concat(createTile(1, 'city4', 1, 1, 1, 1, 1));
+	tileData = new TileData('city2nws');
+	tileData.addObject(new TileObject(3, [0, 1, 2, 3, 6]));
+	tiles = tiles.concat(createTileFromTileData(2, tileData));
+
+	tileData = new TileData('city2nw');
+	tileData.addObject(new TileObject(1, [0, 1, 2, 3, 6]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
+
+	tileData = new TileData('road2ns');
+	tileData.addObject(new TileObject(2, [1, 4, 7]));
+	tiles = tiles.concat(createTileFromTileData(8, tileData));
+
+	tileData = new TileData('city2wes');
+	tileData.addObject(new TileObject(3, [0, 2, 3, 4, 5, 6, 8]));
+	tiles = tiles.concat(createTileFromTileData(2, tileData));
+
+	tileData = new TileData('city2we');
+	tileData.addObject(new TileObject(1, [0, 2, 3, 4, 5, 6, 8]));
+	tiles = tiles.concat(createTileFromTileData(1, tileData));
+
+	tileData = new TileData('road3');
+	tileData.addObject(new TileObject(2, [3, 5, 7]));
+	tiles = tiles.concat(createTileFromTileData(4, tileData));
+
+	tileData = new TileData('city3sr');
+	tileData.addObject(new TileObject(3, [0, 1, 2, 3, 4, 5, 6, 8]));
+	tileData.addObject(new TileObject(2, [7]));
+	tiles = tiles.concat(createTileFromTileData(2, tileData));
+
+	tileData = new TileData('city3r');
+	tileData.addObject(new TileObject(1, [0, 1, 2, 3, 4, 5, 6, 8]));
+	tileData.addObject(new TileObject(2, [7]));
+	tiles = tiles.concat(createTileFromTileData(1, tileData));
+
+	tileData = new TileData('city3s');
+	tileData.addObject(new TileObject(3, [0, 1, 2, 3, 4, 5, 6, 8]));
+	tiles = tiles.concat(createTileFromTileData(1, tileData));
+
+	tileData = new TileData('city3');
+	tileData.addObject(new TileObject(1, [0, 1, 2, 3, 4, 5, 6, 8]));
+	tiles = tiles.concat(createTileFromTileData(3, tileData));
+
+	tileData = new TileData('road4');
+	tileData.addObject(new TileObject(2, [1, 3, 5, 7]));
+	tiles = tiles.concat(createTileFromTileData(1, tileData));
+
+	tileData = new TileData('city4');
+	tileData.addObject(new TileObject(1, [0, 1, 2, 3, 4, 5, 6, 7, 8]));
+	tiles = tiles.concat(createTileFromTileData(1, tileData));
 	
 	return tiles;
 };
 
-var createTile = function(tileCount, imageName, typeEast, 
-													typeSouth, typeWest, typeNorth,
-													typeCenter) {
+var createTileFromTileData = function(tileCount, tileData) {
 	var tiles = new Array();
 	for(var i = 0; i < tileCount; i++) {
-		var tile = new TileData();
-		tile.imageName = imageName;
-		tile.sides[0] = typeEast;
-		tile.sides[1] = typeSouth;
-		tile.sides[2] = typeWest;
-		tile.sides[3] = typeNorth;
-		tile.sides[4] = typeCenter;
-		var tileElement = new Tile(tile);
-		tiles.push(tileElement);
+		var tile = new Tile(tileData);
+		tiles.push(tile);
 	}
-	
 	return tiles;
 };
+
