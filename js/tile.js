@@ -14,24 +14,13 @@ var TileData = function () {
 	this.sides[2] = 0; // Bottom
 	this.sides[3] = 0; // Left
 	this.sides[4] = 0; // Center
-	//this.haveCloister = false;
-
-	this.connectedSides = new Array();
-	this.connectedSides[0] = false; // Top - Right
-	this.connectedSides[1] = false; // Right - Bottom
-	this.connectedSides[2] = false; // Bottom - Left
-	this.connectedSides[3] = false; // Left - Top
-
-	this.connectedSides[4] = false; // Top - Bottom
-	this.connectedSides[5] = false; // Left - Right
-
 	this.follower = null;
 };
 
 var Tile = function (tileData) {
 	this.tileData = tileData;
 	//this.element = $('<img src="' + tileData.imageName + '.png" />');
-	this.element = $('<div style="overflow: hidden; background: url(' + tileData.imageName + '.png)"></div>');
+	this.element = $('<div style="overflow: hidden; background: url(images/' + tileData.imageName + '.png)"></div>');
 	this.rotation = 0;
 	this.subTiles = new Array(9);
 
@@ -139,6 +128,13 @@ Tile.prototype.haveMatchingSides = function (otherTile, relativePosition, rotati
 		otherSideToCompare = otherSideToCompare - 4;
 
 	return this.tileData.sides[sideToCompare] == otherTile.tileData.sides[otherSideToCompare];
+};
+
+Tile.prototype.placeFollower = function() {
+	this.follower = true;
+
+	var follower = $('<img src="images/follower.png" width="30" class="follower" />');
+	this.element.append(follower);
 };
 
 var createTiles = function () {

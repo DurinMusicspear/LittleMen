@@ -5,6 +5,8 @@ var Board = function () {
 	this.legalPositions = new Array();
 	this.tilePool = new Array();
 	this.nextTile = null;
+	this.placeFollower = false;
+	this.followers = ko.observableArray([0, 0, 0, 0, 0, 0, 0]);
 
 	// Create board positions
 	for(var y = 0; y < this.height; y++) {
@@ -26,6 +28,12 @@ var Board = function () {
 		Math.floor(this.height / 2.0), 0);
 
 	$('#board').css('width', this.width * 90);
+
+	$('#placeFollower').click(function () {
+		this.placeFollower = true;
+	});
+
+	ko.applyBindings(this);
 }
 
 Board.prototype.getNextTile = function (specificIndex) {
@@ -38,6 +46,8 @@ Board.prototype.getNextTile = function (specificIndex) {
 };
 
 Board.prototype.placeTile = function(tile, coordX, coordY, rotation) {
+	var board = this;
+
 	$.each(this.legalPositions, function(index, position) {
 		position.css('background', '');
 		position.unbind('click');
@@ -47,6 +57,12 @@ Board.prototype.placeTile = function(tile, coordX, coordY, rotation) {
 	var position = this.positions[coordY][coordX];	
 	position.append(tile.element);
 	position.data('tile', tile);
+	tile.element.click(function () {
+		// if(this.placeFollower) {
+			// 
+			board.placeFollowerOnTile(tile);
+		// }
+	});
 
 	if(rotation != 0) {
 		tile.element.css('-webkit-transform', 'rotate(' + -(rotation * 90) + 'deg)');
@@ -65,8 +81,8 @@ Board.prototype.placeTile = function(tile, coordX, coordY, rotation) {
 	if(coordY == 0)
 		this.expand(3);
 
-	var tile = this.getNextTile();
-	this.showNextTile(tile);
+	var nextTile = this.getNextTile();
+	this.showNextTile(nextTile);
 };
 
 Board.prototype.getLegalPlacementsForTile = function(tile) {
@@ -218,4 +234,10 @@ Board.prototype.expand = function (direction) {
 	}
 
 	$('#board').css('width', this.width * 90);
+};
+
+
+Board.prototype.placeFollowerOnTile = function(tile) {
+	this.followers.pop();
+	tile.placeFollower();
 };

@@ -12,6 +12,8 @@ var Follower = function (occupation, side) {
 $(document).ready(function () {
 	new Board();
 
-	//var tile = board.getNextTile();
-	//board.showNextTile(tile);
+	// var followers = 7;
+	// for(var i = 0; i < followers; i++) {
+	// 	$('#hand .followers').append('<img src="images/follower.png" width="30" />');
+	// }
 });

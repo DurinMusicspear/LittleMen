@@ -27,6 +27,7 @@ img {
 	height: 90px;
 	float: left;
 	background: #f6f6f6;
+	position: relative;
 	/*-webkit-transform: rotate(90deg);*/
 }
 
@@ -39,7 +40,7 @@ img {
 	height: 30px;
 	float: left;
 	background: transparent;
-	opacity: 0.6;
+	opacity: 0;
 }
 
 .City {
@@ -56,4 +57,10 @@ img {
 
 .Cloister {
 	background: black;
+}
+
+.follower {
+	position: absolute;
+	top: 10px;
+	left: 10px;
 }
